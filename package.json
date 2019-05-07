@@ -1,0 +1,19 @@
+{
+  "name": "signun",
+  "version": "0.1.0",
+  "description": "N-API Crypto bindings.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/battila7/signun.git"
+  },
+  "author": "Attila Bagossy",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/battila7/signun/issues"
+  },
+  "homepage": "https://github.com/battila7/signun#readme"
+}

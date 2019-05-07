@@ -2,7 +2,7 @@
   "name": "signun",
   "version": "0.1.0",
   "description": "N-API Crypto bindings.",
-  "main": "src/index.js",
+  "main": "module/js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

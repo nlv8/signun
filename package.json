@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/battila7/signun/issues"
   },
-  "homepage": "https://github.com/battila7/signun#readme"
+  "homepage": "https://github.com/battila7/signun#readme",
+  "devDependencies": {
+    "node-gyp": "^4.0.0"
+  }
 }

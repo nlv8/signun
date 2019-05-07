@@ -17,12 +17,36 @@
             ]
         },
         "sources": [
-            "./module/native/src/signun_node.c"
+            # Dependencies
+            # secp256k1
+            "./dependencies/secp256k1/src/secp256k1.c",
+
+            # signun
+            "./src/native/src/signun_node.c"
+        ],
+        "include_dirs": [
+            # Dependencies
+            # Local Headers (including GMP)
+            "/usr/local/include",
+
+            # secp256k1
+            "./dependencies/secp256k1",
+            "./dependencies/secp256k1/include",
+            "./dependencies/secp256k1/src",
+
+            # signun
+            "./src/native/include"
         ],
         "cflags": [
             "-Wall",
             "-Wextra",
-            "-Werror"
+            "-Werror",
+
+            # These warnings should be ignored, because they're
+            # inherently present in secp256k1.
+            "-Wno-maybe-uninitialized",
+            "-Wno-uninitialized",
+            "-Wno-unused-function"
         ],
         "conditions": [
             [

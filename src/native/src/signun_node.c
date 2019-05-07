@@ -4,9 +4,8 @@
 
 static napi_value init_signun_module(napi_env env, napi_value exports) {
     napi_value result;
-    napi_status status;
-
-    status = napi_create_object(env, &result);
+    
+    napi_create_object(env, &result);
 
     return result;
 }

@@ -22,7 +22,9 @@
             "./dependencies/secp256k1/src/secp256k1.c",
 
             # signun
-            "./src/native/src/signun_node.c"
+            "./src/native/src/signun_node.c",
+            "./src/native/src/signun.c",
+            "./src/native/src/secp256k1_addon.c"
         ],
         "include_dirs": [
             # Dependencies

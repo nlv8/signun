@@ -5,6 +5,7 @@
   "main": "module/js/index.js",
   "gypfile": true,
   "scripts": {
+    "build": "node-gyp rebuild",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

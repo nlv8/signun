@@ -3,6 +3,7 @@ const guard = require('../util/guard');
 
 
 const lengths = Object.freeze({
+    DATA: 32,
     MESSAGE: 32,
     PRIVATE_KEY: 32,
     PUBLIC_KEY1: 33,
@@ -11,13 +12,13 @@ const lengths = Object.freeze({
 });
 
 const messages = Object.freeze({
+    INVALID_DATA: `Data must be a buffer of length ${lengths.DATA}.`,
     INVALID_MESSAGE: `The message must be a Buffer of length ${lengths.MESSAGE}.`,
+    INVALID_NONCE_FUNCTION: `nonceFunction must be a callable function.`,
     INVALID_PRIVATE_KEY: `The private key must be a Buffer of length ${lengths.PRIVATE_KEY}.`,
     INVALID_PUBLIC_KEY: `The public key must be a Buffer of length ${lengths.PUBLIC_KEY1} or ${lengths.PUBLIC_KEY2}.`,
     INVALID_SIGNATURE: `The signature must be a Buffer of length ${lengths.SIGNATURE}.`
 });
-
-const CREATE_COMPRESSED_KEY = true;
 
 const UNSET_NONCE_FUNCTION = null;
 const UNSET_SIGN_DATA = null;
@@ -30,18 +31,26 @@ module.exports = (function moduleFactory(impl) {
             return impl.privateKeyVerify(privateKey);
         },
 
-        publicKeyCreate(privateKey) {
+        publicKeyCreate(privateKey, isCompressed = true) {
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
-            return impl.publicKeyCreate(privateKey, CREATE_COMPRESSED_KEY);
+            return impl.publicKeyCreate(privateKey, !!isCompressed);
         },
 
-        sign(message, privateKey) {
+        sign(message, privateKey, { data, noncefn }) {
             guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
 
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
-            return impl.sign(message, privateKey, UNSET_NONCE_FUNCTION, UNSET_SIGN_DATA);
+            if (data) {
+                guard.isBufferOfLength(data, lengths.DATA, messages.INVALID_DATA);
+            }
+
+            if (noncefn) {
+                guard.isFunction(noncefn, messages.INVALID_NONCE_FUNCTION);
+            }
+
+            return impl.sign(message, privateKey, noncefn || UNSET_NONCE_FUNCTION, data || UNSET_SIGN_DATA);
         },
 
         verify(message, signature, publicKey) {

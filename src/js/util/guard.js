@@ -22,6 +22,11 @@ const guard = {
         if (!hasAcceptedLength) {
             throw new RangeError(errorMessage);
         }
+    },
+    isFunction(obj, errorMessage) {
+        if (!typeof obj === 'function') {
+            throw new TypeError(errorMessage);
+        }
     }
 };
 

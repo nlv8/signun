@@ -1,5 +1,4 @@
-const { BINDINGS_NOT_COMPILED } = require('./util/messages')
-
+const BINDINGS_NOT_COMPILED = 'Native bindings are not compiled. This library however, can only be used with native bindings.';
 
 try {
     const native = require('../../build/Release/signun.node');

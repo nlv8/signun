@@ -1,18 +1,57 @@
 const { secp256k1 } = require('../native');
+const guard = require('../util/guard');
+
+
+const lengths = Object.freeze({
+    MESSAGE: 32,
+    PRIVATE_KEY: 32,
+    PUBLIC_KEY1: 33,
+    PUBLIC_KEY2: 65,
+    SIGNATURE: 64
+});
+
+const messages = Object.freeze({
+    INVALID_MESSAGE: `The message must be a Buffer of length ${lengths.MESSAGE}.`,
+    INVALID_PRIVATE_KEY: `The private key must be a Buffer of length ${lengths.PRIVATE_KEY}.`,
+    INVALID_PUBLIC_KEY: `The public key must be a Buffer of length ${lengths.PUBLIC_KEY1} or ${lengths.PUBLIC_KEY2}.`,
+    INVALID_SIGNATURE: `The signature must be a Buffer of length ${lengths.SIGNATURE}.`
+});
+
+const CREATE_COMPRESSED_KEY = true;
+
+const UNSET_NONCE_FUNCTION = null;
+const UNSET_SIGN_DATA = null;
 
 module.exports = (function moduleFactory(impl) {
     return Object.freeze({
         privateKeyVerify(privateKey) {
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
+            return impl.privateKeyVerify(privateKey);
         },
+
         publicKeyCreate(privateKey) {
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
+            return impl.publicKeyCreate(privateKey, CREATE_COMPRESSED_KEY);
         },
+
         sign(message, privateKey) {
+            guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
 
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
+
+            return impl.sign(message, privateKey, UNSET_NONCE_FUNCTION, UNSET_SIGN_DATA);
         },
-        verify(message, signature, publicKey) {
 
+        verify(message, signature, publicKey) {
+            guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
+
+            guard.isBufferOfLength(signature, lengths.SIGNATURE, messages.INVALID_SIGNATURE);
+
+            guard.isBufferOfLengthAny(publicKey, [lengths.PUBLIC_KEY1, lengths.PUBLIC_KEY2], messages.INVALID_PUBLIC_KEY);
+
+            return impl.verify(message, signature, publicKey);
         }
     });
 })(secp256k1);

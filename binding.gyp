@@ -39,6 +39,9 @@
             # signun
             "./src/native/include"
         ],
+        "defines": [
+            "ENABLE_MODULE_RECOVERY=1"
+        ],
         "cflags": [
             "-Wall",
             "-Wextra",

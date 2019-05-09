@@ -1,6 +1,3 @@
-const {} = require('./messages');
-
-
 const guard = {
     isBuffer(obj, errorMessage) {
         if (!Buffer.isBuffer(obj)) {

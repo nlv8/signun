@@ -2,7 +2,7 @@
   "name": "signun",
   "version": "0.1.0",
   "description": "N-API Crypto bindings.",
-  "main": "module/js/index.js",
+  "main": "src/js/index.js",
   "gypfile": true,
   "scripts": {
     "build": "node-gyp rebuild",
@@ -12,6 +12,11 @@
     "type": "git",
     "url": "git+https://github.com/battila7/signun.git"
   },
+  "keywords": [
+    "N-API",
+    "cryptography",
+    "secp256k1"
+  ],
   "author": "Attila Bagossy",
   "license": "Apache-2.0",
   "bugs": {

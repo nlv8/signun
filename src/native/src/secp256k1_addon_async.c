@@ -1,4 +1,4 @@
-#include "secp256k1_addon_sync.h"
+#include "secp256k1_addon_async.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@ typedef struct
     napi_value js_noncefn;
 } custom_nonce_closure_t;
 
-napi_value secp256k1_addon_private_key_verify_sync(napi_env env, napi_callback_info info)
+napi_value secp256k1_addon_private_key_verify_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[1];
@@ -55,7 +55,7 @@ napi_value secp256k1_addon_private_key_verify_sync(napi_env env, napi_callback_i
     return js_result;
 }
 
-napi_value secp256k1_addon_public_key_create_sync(napi_env env, napi_callback_info info)
+napi_value secp256k1_addon_public_key_create_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
     napi_value argv[2];
@@ -188,7 +188,7 @@ static int wrapped_js_nonce_fn(unsigned char *nonce, const unsigned char *messag
     return NONCE_SUCCESS;
 }
 
-napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
+napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 4;
     napi_value argv[4];
@@ -298,7 +298,7 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     return js_result;
 }
 
-napi_value secp256k1_addon_verify_sync(napi_env env, napi_callback_info info)
+napi_value secp256k1_addon_verify_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 3;
     napi_value argv[3];

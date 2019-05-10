@@ -4,8 +4,6 @@
 #include <js_native_api.h>
 #include <node_api.h>
 
-#include "secp256k1.h"
-
 
 napi_value secp256k1_addon_private_key_verify_sync(napi_env env, napi_callback_info info);
 

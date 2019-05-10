@@ -13,6 +13,7 @@ typedef struct
 {
     napi_deferred deferred;
     secp256k1_context *secp256k1context;
+    napi_async_work async_work;
 
     unsigned char private_key[KEY_LENGTH];
     bool is_compressed;
@@ -89,6 +90,15 @@ static void public_key_create_async_execute(napi_env env, void *data)
 static void public_key_create_async_complete(napi_env env, napi_status status, void *data)
 {
     public_key_create_callback_data_t *callback_data = (public_key_create_callback_data_t *) data;
+
+    if (napi_ok != napi_delete_async_work(env, callback_data->async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not delete async work.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
 
     if (napi_ok != status)
     {
@@ -181,6 +191,8 @@ napi_value secp256k1_addon_public_key_create_async(napi_env env, napi_callback_i
         free(create_callback_data);
         return promise;
     }
+
+    create_callback_data->async_work = create_async_work;
 
     napi_status queue_status = napi_queue_async_work(env, create_async_work);
     if (napi_ok != queue_status)

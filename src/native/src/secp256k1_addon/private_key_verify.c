@@ -13,6 +13,7 @@ typedef struct
 {
     napi_deferred deferred;
     secp256k1_context *secp256k1context;
+    napi_async_work async_work;
 
     unsigned char private_key[KEY_LENGTH];
 
@@ -56,6 +57,15 @@ static void private_key_verify_async_execute(napi_env env, void *data)
 static void private_key_verify_async_complete(napi_env env, napi_status status, void *data)
 {
     private_key_verify_callback_data_t *callback_data = (private_key_verify_callback_data_t *) data;
+
+    if (napi_ok != napi_delete_async_work(env, callback_data->async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not delete async work.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
 
     if (napi_ok != status)
     {
@@ -131,6 +141,8 @@ napi_value secp256k1_addon_private_key_verify_async(napi_env env, napi_callback_
         free(verify_callback_data);
         return promise;
     }
+
+    verify_callback_data->async_work = verify_async_work;
 
     napi_status queue_status = napi_queue_async_work(env, verify_async_work);
     if (napi_ok != queue_status)

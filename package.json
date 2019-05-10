@@ -20,5 +20,12 @@
   "homepage": "https://github.com/battila7/signun#readme",
   "devDependencies": {
     "node-gyp": "^4.0.0"
-  }
+  },
+  "files": [
+    "dependencies",
+    "src",
+    "binding.gyp",
+    "LICENSE",
+    "README.md"
+  ]
 }

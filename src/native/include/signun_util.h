@@ -1,8 +1,8 @@
 #ifndef __SIGNUN_UTIL_H
 #define __SIGNUN_UTIL_H
 
-#define DECLARE_NAPI_METHOD(name, function)     \
-{ name, NULL, function, NULL, NULL, NULL, napi_default | napi_enumerable, NULL }
+#define DECLARE_NAPI_METHOD(name, function, data)     \
+{ name, NULL, function, NULL, NULL, NULL, napi_default | napi_enumerable, data }
 
 #define RETURN_ON_FAILURE(call)             \
     do                                      \

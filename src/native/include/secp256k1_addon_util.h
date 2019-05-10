@@ -1,0 +1,12 @@
+#ifndef __SIGNUN_SECP256K1_ADDON_UTIL_H
+#define __SIGNUN_SECP256K1_ADDON_UTIL_H
+
+#include "secp256k1.h"
+
+
+typedef struct
+{
+    secp256k1_context *secp256k1context;
+} secp256k1_addon_callback_data_t;
+
+#endif

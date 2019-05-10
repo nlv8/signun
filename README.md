@@ -98,6 +98,8 @@ This project is kindly supported by:
 
   * [NLV8](https://nlv8.com/)
 
+I'd like to give special thanks to [Viktor Simkó](https://github.com/ViktorSimko) and [Tibor Balla](https://github.com/ballatibi) for helping me out when I was lost :unicorn:
+
 ## License
 
 signun is licensed under [Apache-2.0](https://github.com/battila7/signun/blob/master/LICENSE).

@@ -25,19 +25,19 @@ const UNSET_SIGN_DATA = null;
 
 module.exports = (function moduleFactory(impl) {
     return Object.freeze({
-        privateKeyVerify(privateKey) {
+        privateKeyVerifySync(privateKey) {
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
-            return impl.privateKeyVerify(privateKey);
+            return impl.privateKeyVerifySync(privateKey);
         },
 
-        publicKeyCreate(privateKey, isCompressed = true) {
+        publicKeyCreateSync(privateKey, isCompressed = true) {
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
-            return impl.publicKeyCreate(privateKey, !!isCompressed);
+            return impl.publicKeyCreateSync(privateKey, !!isCompressed);
         },
 
-        sign(message, privateKey, { data, noncefn }) {
+        signSync(message, privateKey, { data, noncefn }) {
             guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
 
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
@@ -50,17 +50,17 @@ module.exports = (function moduleFactory(impl) {
                 guard.isFunction(noncefn, messages.INVALID_NONCE_FUNCTION);
             }
 
-            return impl.sign(message, privateKey, noncefn || UNSET_NONCE_FUNCTION, data || UNSET_SIGN_DATA);
+            return impl.signSync(message, privateKey, noncefn || UNSET_NONCE_FUNCTION, data || UNSET_SIGN_DATA);
         },
 
-        verify(message, signature, publicKey) {
+        verifySync(message, signature, publicKey) {
             guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
 
             guard.isBufferOfLength(signature, lengths.SIGNATURE, messages.INVALID_SIGNATURE);
 
             guard.isBufferOfLengthAny(publicKey, [lengths.PUBLIC_KEY1, lengths.PUBLIC_KEY2], messages.INVALID_PUBLIC_KEY);
 
-            return impl.verify(message, signature, publicKey);
+            return impl.verifySync(message, signature, publicKey);
         }
     });
 })(secp256k1);

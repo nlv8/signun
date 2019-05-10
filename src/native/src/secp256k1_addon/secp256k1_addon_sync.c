@@ -1,4 +1,4 @@
-#include "secp256k1_addon_sync.h"
+#include "secp256k1_addon/secp256k1_addon_sync.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,7 +7,7 @@
 #include "secp256k1.h"
 #include "secp256k1_recovery.h"
 
-#include "secp256k1_addon_util.h"
+#include "secp256k1_addon/secp256k1_addon_util.h"
 #include "signun_util.h"
 
 

@@ -1,4 +1,4 @@
-#include "secp256k1_addon_async.h"
+#include "secp256k1_addon/secp256k1_addon_async.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,8 +8,8 @@
 #include "secp256k1.h"
 #include "secp256k1_recovery.h"
 
-#include "secp256k1_addon_util.h"
 #include "signun_util.h"
+#include "secp256k1_addon/secp256k1_addon_util.h"
 
 
 #define DATA_LENGTH 32

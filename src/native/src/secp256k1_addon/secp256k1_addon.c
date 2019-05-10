@@ -1,8 +1,8 @@
-#include "secp256k1_addon.h"
+#include "secp256k1_addon/secp256k1_addon.h"
 
-#include "secp256k1_addon_async.h"
-#include "secp256k1_addon_sync.h"
-#include "secp256k1_addon_util.h"
+#include "secp256k1_addon/secp256k1_addon_async.h"
+#include "secp256k1_addon/secp256k1_addon_sync.h"
+#include "secp256k1_addon/secp256k1_addon_util.h"
 #include "signun_util.h"
 
 

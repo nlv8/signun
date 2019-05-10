@@ -25,9 +25,9 @@
             "./src/native/src/signun.c",
             "./src/native/src/signun_node.c",
             "./src/native/src/signun_util.c",
-            "./src/native/src/secp256k1_addon.c",
-            "./src/native/src/secp256k1_addon_sync.c",
-            "./src/native/src/secp256k1_addon_async.c"
+            "./src/native/src/secp256k1_addon/secp256k1_addon.c",
+            "./src/native/src/secp256k1_addon/secp256k1_addon_sync.c",
+            "./src/native/src/secp256k1_addon/secp256k1_addon_async.c"
         ],
         "include_dirs": [
             # Dependencies

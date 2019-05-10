@@ -1,5 +1,7 @@
 # signun
 
+[![NPM version](https://img.shields.io/npm/v/signun.svg)](https://www.npmjs.com/package/signun)
+
 signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n_api) bindings to the following crypto libraries:
 
   * [secp256k1](https://github.com/bitcoin-core/secp256k1)

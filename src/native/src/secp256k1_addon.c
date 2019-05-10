@@ -16,7 +16,7 @@ napi_status create_secp256k1_addon(napi_env env, napi_value base)
 
     RETURN_ON_FAILURE(napi_create_object(env, &addon));
 
-    const size_t property_count = 4;
+    const size_t property_count = 8;
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_METHOD("privateKeyVerifySync", secp256k1_addon_private_key_verify_sync, &callback_data),
         DECLARE_NAPI_METHOD("publicKeyCreateSync", secp256k1_addon_public_key_create_sync, &callback_data),

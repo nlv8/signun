@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "secp256k1.h"
@@ -16,6 +17,8 @@
 #define KEY_LENGTH 32
 #define ALGORITHM_LENGTH 16
 #define NONCE_LENGTH 32
+#define SIGNATURE_LENGTH 64
+#define SERIALIZED_PUBLIC_KEY_LENGTH 65
 
 #define NONCE_FAILED 0
 #define NONCE_SUCCESS 1
@@ -28,75 +31,362 @@ typedef struct
     napi_value js_noncefn;
 } custom_nonce_closure_t;
 
+typedef struct
+{
+    napi_deferred deferred;
+    secp256k1_context *secp256k1context;
+
+    unsigned char private_key[KEY_LENGTH];
+
+    bool result;
+} private_key_verify_callback_data_t;
+
+static void private_key_verify_async_execute(napi_env env, void *data)
+{
+    private_key_verify_callback_data_t *callback_data = (private_key_verify_callback_data_t *) data;
+
+    callback_data->result = secp256k1_ec_seckey_verify(callback_data->secp256k1context, callback_data->private_key);
+}
+
+static void private_key_verify_async_complete(napi_env env, napi_status status, void *data)
+{
+    private_key_verify_callback_data_t *callback_data = (private_key_verify_callback_data_t *) data;
+
+    if (napi_ok != status)
+    {
+        REJECT_WITH_ERROR(env, "The execution was cancelled.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_value js_result;
+    if (napi_ok != napi_get_boolean(env, callback_data->result, &js_result))
+    {
+        REJECT_WITH_ERROR(env, "Could not get a boolean.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_resolve_deferred(env, callback_data->deferred, js_result);
+
+    free(callback_data);
+}
+
 napi_value secp256k1_addon_private_key_verify_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value argv[1];
-    secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
-        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
+    secp256k1_addon_callback_data_t *current_callback_data;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &current_callback_data),
         env, "Could not read function arguments."
     );
 
     size_t private_key_length;
-    const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    unsigned char *private_key;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
 
-    napi_value js_result;
-    const int verify_result = secp256k1_ec_seckey_verify(callback_data->secp256k1context, private_key);
-    THROW_ON_FAILURE(
-        napi_get_boolean(env, verify_result, &js_result),
-        env, "Could not set the result."
+    napi_value null_value;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_null(env, &null_value),
+        env, "Could not get null value."
     );
 
-    return js_result;
+    const char *resource_identifier = "secp256k1::async::verify";
+    napi_value verify_resource_name;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_create_string_utf8(env, resource_identifier, NAPI_AUTO_LENGTH, &verify_resource_name),
+        env, "Could not create resource name."
+    );
+
+    private_key_verify_callback_data_t *verify_callback_data = (private_key_verify_callback_data_t *)malloc(sizeof (private_key_verify_callback_data_t));
+    verify_callback_data->secp256k1context = current_callback_data->secp256k1context;
+
+    memcpy(verify_callback_data->private_key, private_key, KEY_LENGTH);
+
+    napi_value promise;
+    if (napi_ok != napi_create_promise(env, &verify_callback_data->deferred, &promise))
+    {
+        free(verify_callback_data);
+        napi_throw_error(env, NULL, "Could not create result promise.");
+        return NULL;
+    }
+
+    napi_async_work verify_async_work;
+    if (napi_ok != napi_create_async_work(env, NULL, verify_resource_name, private_key_verify_async_execute, private_key_verify_async_complete, verify_callback_data, &verify_async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not create async work.", verify_callback_data->deferred);
+        free(verify_callback_data);
+        return promise;
+    }
+
+    napi_status queue_status = napi_queue_async_work(env, verify_async_work);
+    if (napi_ok != queue_status)
+    {
+        REJECT_WITH_ERROR(env, "Could not queue async work.", verify_callback_data->deferred);
+        free(verify_callback_data);
+        napi_delete_async_work(env, verify_async_work);
+        return promise;
+    }
+
+    return promise;
+}
+
+typedef struct
+{
+    napi_deferred deferred;
+    secp256k1_context *secp256k1context;
+
+    unsigned char private_key[KEY_LENGTH];
+    bool is_compressed;
+
+    bool success;
+    size_t result_length;
+    unsigned char result[SERIALIZED_PUBLIC_KEY_LENGTH];
+} public_key_create_callback_data_t;
+
+static void public_key_create_async_execute(napi_env env, void *data)
+{
+    public_key_create_callback_data_t *callback_data = (public_key_create_callback_data_t *) data;
+
+    unsigned int serializationFlags = callback_data->is_compressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED;
+
+    secp256k1_pubkey public_key;
+    if (0 == secp256k1_ec_pubkey_create(callback_data->secp256k1context, &public_key, callback_data->private_key))
+    {
+        callback_data->success = false;
+        return;
+    }
+
+    secp256k1_ec_pubkey_serialize(callback_data->secp256k1context, &callback_data->result[0], &callback_data->result_length, &public_key, serializationFlags);
+
+    callback_data->success = true;
+}
+
+static void public_key_create_async_complete(napi_env env, napi_status status, void *data)
+{
+    public_key_create_callback_data_t *callback_data = (public_key_create_callback_data_t *) data;
+
+    if (napi_ok != status)
+    {
+        REJECT_WITH_ERROR(env, "The execution was cancelled.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    if (!callback_data->success)
+    {
+        REJECT_WITH_ERROR(env, "Could not create the public key.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_value js_result;
+    if (napi_ok != napi_create_buffer_copy(env, callback_data->result_length, (void *)callback_data->result, NULL, &js_result))
+    {
+        REJECT_WITH_ERROR(env, "Could not set the result buffer.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_resolve_deferred(env, callback_data->deferred, js_result);
+
+    free(callback_data);
 }
 
 napi_value secp256k1_addon_public_key_create_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 2;
     napi_value argv[2];
-    secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
-        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
+    secp256k1_addon_callback_data_t *current_callback_data;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &current_callback_data),
         env, "Could not read function arguments."
     );
 
     size_t private_key_length;
-    const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    unsigned char *private_key;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
 
     bool is_compressed;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_value_bool(env, argv[1], &is_compressed),
         env, "Invalid bool was passed as compressed flag."
     );
 
-    unsigned int serializationFlags = is_compressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED;
-
-    secp256k1_pubkey public_key;
-    if (0 == secp256k1_ec_pubkey_create(callback_data->secp256k1context, &public_key, private_key))
-    {
-        napi_throw_error(env, NULL, "Could not create the public key.");
-    }
-
-    size_t serialized_public_key_length = 65;
-    unsigned char serialized_public_key[65];
-    secp256k1_ec_pubkey_serialize(callback_data->secp256k1context, &serialized_public_key[0], &serialized_public_key_length, &public_key, serializationFlags);
-
-    napi_value js_result;
-    THROW_ON_FAILURE(
-        napi_create_buffer_copy(env, serialized_public_key_length, (void *)serialized_public_key, NULL, &js_result),
-        env, "Could not set the result buffer"
+    napi_value null_value;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_null(env, &null_value),
+        env, "Could not get null value."
     );
 
-    return js_result;
+    const char *resource_identifier = "secp256k1::async::createPublicKey";
+    napi_value create_resource_name;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_create_string_utf8(env, resource_identifier, NAPI_AUTO_LENGTH, &create_resource_name),
+        env, "Could not create resource name."
+    );
+
+    public_key_create_callback_data_t *create_callback_data = (public_key_create_callback_data_t *)malloc(sizeof (public_key_create_callback_data_t));
+    create_callback_data->is_compressed = is_compressed;
+    create_callback_data->result_length = SERIALIZED_PUBLIC_KEY_LENGTH;
+    create_callback_data->secp256k1context = current_callback_data->secp256k1context;
+
+    memcpy(&create_callback_data->private_key[0], private_key, KEY_LENGTH);
+
+    napi_value promise;
+    if (napi_ok != napi_create_promise(env, &create_callback_data->deferred, &promise))
+    {
+        free(create_callback_data);
+        napi_throw_error(env, NULL, "Could not create result promise.");
+        return NULL;
+    }
+
+    napi_async_work create_async_work;
+    if (napi_ok != napi_create_async_work(env, NULL, create_resource_name, public_key_create_async_execute, public_key_create_async_complete, create_callback_data, &create_async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not create async work.", create_callback_data->deferred);
+        free(create_callback_data);
+        return promise;
+    }
+
+    napi_status queue_status = napi_queue_async_work(env, create_async_work);
+    if (napi_ok != queue_status)
+    {
+        REJECT_WITH_ERROR(env, "Could not queue async work.", create_callback_data->deferred);
+        free(create_callback_data);
+        napi_delete_async_work(env, create_async_work);
+        return promise;
+    }
+    
+    return promise;
+}
+
+typedef struct
+{
+    napi_deferred deferred;
+    secp256k1_context *secp256k1context;
+
+    unsigned char message[MESSAGE_LENGTH];
+    unsigned char private_key[KEY_LENGTH];
+    unsigned char data[DATA_LENGTH];
+    bool is_data_null;
+
+    bool success;
+    unsigned char result[SIGNATURE_LENGTH];
+    int recovery_id;
+} sign_callback_data_t;
+
+static void sign_async_execute(napi_env env, void *data)
+{
+    sign_callback_data_t *callback_data = (sign_callback_data_t *) data;
+
+    secp256k1_ecdsa_recoverable_signature signature;
+
+    // Custom noncefn is not supported yet.
+    int sign_status = secp256k1_ecdsa_sign_recoverable(callback_data->secp256k1context, &signature, callback_data->message, callback_data->private_key, secp256k1_nonce_function_rfc6979, callback_data->data);
+    
+    if (0 == sign_status)
+    {
+        callback_data->success = false;
+
+        return;
+    }
+
+    secp256k1_ecdsa_recoverable_signature_serialize_compact(callback_data->secp256k1context, &callback_data->result[0], &callback_data->recovery_id, &signature); 
+
+    callback_data->success = true;
+}
+
+static void sign_async_complete(napi_env env, napi_status status, void *data)
+{
+    sign_callback_data_t *callback_data = (sign_callback_data_t *) data;
+
+    if (napi_ok != status)
+    {
+        REJECT_WITH_ERROR(env, "The execution was cancelled.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    if (!callback_data->success)
+    {
+        REJECT_WITH_ERROR(env, "Could not sign the message.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_value js_signature;
+    if (napi_ok != napi_create_buffer_copy(env, SIGNATURE_LENGTH, (void *)callback_data->result, NULL, &js_signature))
+    {
+        REJECT_WITH_ERROR(env, "Could not set the signature buffer", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    };
+
+    napi_value js_recovery;
+    if (napi_ok != napi_create_int32(env, callback_data->recovery_id, &js_recovery))
+    {
+        REJECT_WITH_ERROR(env, "Could not set the recovery id.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_value js_result;
+    if (napi_ok != napi_create_object(env, &js_result))
+    {
+        REJECT_WITH_ERROR(env, "Could not create the result object.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    if (napi_ok != napi_set_named_property(env, js_result, "signature", js_signature))
+    {
+        REJECT_WITH_ERROR(env, "Could not set named property: 'signature'.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    if (napi_ok != napi_set_named_property(env, js_result, "recovery", js_recovery))
+    {
+        REJECT_WITH_ERROR(env, "Could not set named property: 'recovery'.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    napi_resolve_deferred(env, callback_data->deferred, js_result);
+
+    free(callback_data);
 }
 
 static int wrapped_js_nonce_fn(unsigned char *nonce, const unsigned char *message, const unsigned char *key, const unsigned char *algorithm, void *data, unsigned int attempt)
@@ -192,22 +482,22 @@ napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 4;
     napi_value argv[4];
-    secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
-        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
+    secp256k1_addon_callback_data_t *current_callback_data;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &current_callback_data),
         env, "Could not read function arguments."
     );
 
     size_t message_length;
     const unsigned char *message;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &message, &message_length),
         env, "Invalid buffer was passed as message."
     );
 
     size_t private_key_length;
     const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[1], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
@@ -216,19 +506,19 @@ napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
     unsigned char *data = NULL;
 
     napi_value null_value;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_null(env, &null_value),
         env, "Could not get null object"
     );
 
     bool is_noncefn_null;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_strict_equals(env, argv[2], null_value, &is_noncefn_null),
         env, "Could not check if noncefn is null"
     );
 
     bool is_data_null;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_strict_equals(env, argv[3], null_value, &is_data_null),
         env, "Could not check if data is null"
     );
@@ -239,114 +529,210 @@ napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
     }
     else
     {
-        THROW_ON_FAILURE(
+        THROW_AND_RETURN_NULL_ON_FAILURE(
             napi_get_buffer_info(env, argv[3], (void **) &data, &data_length),
             env, "Invalid buffer was passed as data."
         );
     }
 
-    secp256k1_ecdsa_recoverable_signature signature;
-    int sign_status;
-    if (is_noncefn_null)
-    {    
-        sign_status = secp256k1_ecdsa_sign_recoverable(callback_data->secp256k1context, &signature, message, private_key, secp256k1_nonce_function_rfc6979, data);
-    }
-    else
+    const char *resource_identifier = "secp256k1::async::sign";
+    napi_value sign_resource_name;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_create_string_utf8(env, resource_identifier, NAPI_AUTO_LENGTH, &sign_resource_name),
+        env, "Could not create resource name."
+    );
+
+    sign_callback_data_t *sign_callback_data = (sign_callback_data_t *)malloc(sizeof (sign_callback_data_t));
+    
+    sign_callback_data->secp256k1context = current_callback_data->secp256k1context;
+
+    memcpy(&sign_callback_data->message[0], message, MESSAGE_LENGTH);
+    memcpy(&sign_callback_data->private_key[0], private_key, KEY_LENGTH);
+    if (data)
     {
-        custom_nonce_closure_t nonce_closure = { data, env, argv[2] };
-        sign_status = secp256k1_ecdsa_sign_recoverable(callback_data->secp256k1context, &signature, message, private_key, wrapped_js_nonce_fn, &nonce_closure);
+        memcpy(&sign_callback_data->data[0], data, DATA_LENGTH);
+    }
+    sign_callback_data->is_data_null = data;
+
+    napi_value promise;
+    if (napi_ok != napi_create_promise(env, &sign_callback_data->deferred, &promise))
+    {
+        free(sign_callback_data);
+        napi_throw_error(env, NULL, "Could not create result promise.");
+        return NULL;
+    }
+
+    napi_async_work sign_async_work;
+    if (napi_ok != napi_create_async_work(env, NULL, sign_resource_name, sign_async_execute, sign_async_complete, sign_callback_data, &sign_async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not create async work.", sign_callback_data->deferred);
+        free(sign_callback_data);
+        return promise;
+    }
+
+    napi_status queue_status = napi_queue_async_work(env, sign_async_work);
+    if (napi_ok != queue_status)
+    {
+        REJECT_WITH_ERROR(env, "Could not queue async work.", sign_callback_data->deferred);
+        free(sign_callback_data);
+        napi_delete_async_work(env, sign_async_work);
+        return promise;
     }
     
-    if (0 == sign_status)
+    return promise;
+}
+
+typedef struct
+{
+    napi_deferred deferred;
+    secp256k1_context *secp256k1context;
+
+    unsigned char message[MESSAGE_LENGTH];
+    unsigned char raw_signature[SIGNATURE_LENGTH];
+    size_t raw_public_key_length;
+    unsigned char raw_public_key[SERIALIZED_PUBLIC_KEY_LENGTH];
+
+    bool success;
+    bool result;
+} verify_callback_data_t;
+
+static void verify_async_execute(napi_env env, void *data)
+{
+    verify_callback_data_t *callback_data = (verify_callback_data_t *) data;
+
+    secp256k1_ecdsa_signature signature;
+    if (0 == secp256k1_ecdsa_signature_parse_compact(callback_data->secp256k1context, &signature, callback_data->raw_signature))
     {
-        napi_throw_error(env, NULL, "Could not sign the mesage.");
+        callback_data->success = false;
+        return;
     }
 
-    size_t compact_output_length = 64;
-    unsigned char compact_output[64];
-    int recovery_id;
-    secp256k1_ecdsa_recoverable_signature_serialize_compact(callback_data->secp256k1context, &compact_output[0], &recovery_id, &signature);
+    secp256k1_pubkey public_key;
+    if (0 == secp256k1_ec_pubkey_parse(callback_data->secp256k1context, &public_key, callback_data->raw_public_key, callback_data->raw_public_key_length))
+    {
+        callback_data->success = false;
+        return;
+    }
 
-    napi_value js_signature;
-    THROW_ON_FAILURE(
-        napi_create_buffer_copy(env, compact_output_length, (void *)compact_output, NULL, &js_signature),
-        env, "Could not set the signature buffer"
-    );
+    callback_data->success = true;
 
-    napi_value js_recovery;
-    THROW_ON_FAILURE(
-        napi_create_int32(env, recovery_id, &js_recovery),
-        env, "Could not set the recovery id."
-    );
+    callback_data->result = secp256k1_ecdsa_verify(callback_data->secp256k1context, &signature, callback_data->message, &public_key);
+}
+
+static void verify_async_complete(napi_env env, napi_status status, void *data)
+{
+    verify_callback_data_t *callback_data = (verify_callback_data_t *) data;
+
+    if (napi_ok != status)
+    {
+        REJECT_WITH_ERROR(env, "The execution was cancelled.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
+
+    if (!callback_data->success)
+    {
+        REJECT_WITH_ERROR(env, "Could not verify the signature.", callback_data->deferred);
+
+        free(callback_data);
+
+        return;
+    }
 
     napi_value js_result;
-    THROW_ON_FAILURE(
-        napi_create_object(env, &js_result),
-        env, "Could not create the result object."
-    );   
+    if (napi_ok != napi_get_boolean(env, callback_data->result, &js_result))
+    {
+        REJECT_WITH_ERROR(env, "Could not get a boolean.", callback_data->deferred);
 
-    THROW_ON_FAILURE(
-        napi_set_named_property(env, js_result, "signature", js_signature),
-        env, "Could not set named property: 'signature'."
-    );
+        free(callback_data);
 
-    THROW_ON_FAILURE(
-        napi_set_named_property(env, js_result, "recovery", js_recovery),
-        env, "Could not set named property: 'recovery'."
-    );
+        return;
+    }
 
-    return js_result;
+    napi_resolve_deferred(env, callback_data->deferred, js_result);
+
+    free(callback_data);
 }
 
 napi_value secp256k1_addon_verify_async(napi_env env, napi_callback_info info)
 {
     size_t argc = 3;
     napi_value argv[3];
-    secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
-        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
+    secp256k1_addon_callback_data_t *current_callback_data;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &current_callback_data),
         env, "Could not read function arguments."
     );
 
     size_t message_length;
     const unsigned char *message;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &message, &message_length),
         env, "Invalid buffer was passed as message."
     );
     
     size_t raw_signature_length;
     const unsigned char *raw_signature;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[1], (void **) &raw_signature, &raw_signature_length),
         env, "Invalid buffer was passed as signature."
     );
 
     size_t raw_public_key_length;
     const unsigned char *raw_public_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[2], (void **) &raw_public_key, &raw_public_key_length),
         env, "Invalid buffer was passed as a public key."
     );
 
-    secp256k1_ecdsa_signature signature;
-    if (0 == secp256k1_ecdsa_signature_parse_compact(callback_data->secp256k1context, &signature, raw_signature))
-    {
-        napi_throw_error(env, NULL, "Could not parse the signature.");
-    }
-
-    secp256k1_pubkey public_key;
-    if (0 == secp256k1_ec_pubkey_parse(callback_data->secp256k1context, &public_key, raw_public_key, raw_public_key_length))
-    {
-        napi_throw_error(env, NULL, "Could not parse the public key.");
-    }
-
-    napi_value js_result;
-    const int verify_result = secp256k1_ecdsa_verify(callback_data->secp256k1context, &signature, message, &public_key);
-    THROW_ON_FAILURE(
-        napi_get_boolean(env, verify_result, &js_result),
-        env, "Could not set the result."
+    napi_value null_value;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_null(env, &null_value),
+        env, "Could not get null value."
     );
 
-    return js_result;
+    const char *resource_identifier = "secp256k1::async::verify";
+    napi_value verify_resource_name;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_create_string_utf8(env, resource_identifier, NAPI_AUTO_LENGTH, &verify_resource_name),
+        env, "Could not create resource name."
+    );
+
+    verify_callback_data_t *verify_callback_data = (verify_callback_data_t *)malloc(sizeof (verify_callback_data_t));
+    
+    verify_callback_data->secp256k1context = current_callback_data->secp256k1context;
+
+    memcpy(&verify_callback_data->message[0], message, MESSAGE_LENGTH);
+    memcpy(&verify_callback_data->raw_signature[0], raw_signature, raw_signature_length);
+    verify_callback_data->raw_public_key_length = raw_public_key_length;
+    memcpy(&verify_callback_data->raw_public_key[0], raw_public_key, raw_public_key_length);
+
+    napi_value promise;
+    if (napi_ok != napi_create_promise(env, &verify_callback_data->deferred, &promise))
+    {
+        free(verify_callback_data);
+        napi_throw_error(env, NULL, "Could not create result promise.");
+        return NULL;
+    }
+
+    napi_async_work verify_async_work;
+    if (napi_ok != napi_create_async_work(env, NULL, verify_resource_name, verify_async_execute, verify_async_complete, verify_callback_data, &verify_async_work))
+    {
+        REJECT_WITH_ERROR(env, "Could not create async work.", verify_callback_data->deferred);
+        free(verify_callback_data);
+        return promise;
+    }
+
+    napi_status queue_status = napi_queue_async_work(env, verify_async_work);
+    if (napi_ok != queue_status)
+    {
+        REJECT_WITH_ERROR(env, "Could not queue async work.", verify_callback_data->deferred);
+        free(verify_callback_data);
+        napi_delete_async_work(env, verify_async_work);
+        return promise;
+    }
+    
+    return promise;
 }

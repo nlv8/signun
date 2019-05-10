@@ -31,10 +31,22 @@ module.exports = (function moduleFactory(impl) {
             return impl.privateKeyVerifySync(privateKey);
         },
 
+        privateKeyVerify(privateKey) {
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
+
+            return impl.privateKeyVerify(privateKey);
+        },
+
         publicKeyCreateSync(privateKey, isCompressed = true) {
             guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
 
             return impl.publicKeyCreateSync(privateKey, !!isCompressed);
+        },
+
+        publicKeyCreate(privateKey, isCompressed = true) {
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
+
+            return impl.publicKeyCreate(privateKey, !!isCompressed);
         },
 
         signSync(message, privateKey, { data, noncefn }) {
@@ -53,6 +65,22 @@ module.exports = (function moduleFactory(impl) {
             return impl.signSync(message, privateKey, noncefn || UNSET_NONCE_FUNCTION, data || UNSET_SIGN_DATA);
         },
 
+        sign(message, privateKey, { data, noncefn }) {
+            guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
+
+            guard.isBufferOfLength(privateKey, lengths.PRIVATE_KEY, messages.INVALID_PRIVATE_KEY);
+
+            if (data) {
+                guard.isBufferOfLength(data, lengths.DATA, messages.INVALID_DATA);
+            }
+
+            if (noncefn) {
+                guard.isFunction(noncefn, messages.INVALID_NONCE_FUNCTION);
+            }
+
+            return impl.sign(message, privateKey, noncefn || UNSET_NONCE_FUNCTION, data || UNSET_SIGN_DATA);
+        },
+
         verifySync(message, signature, publicKey) {
             guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
 
@@ -61,6 +89,16 @@ module.exports = (function moduleFactory(impl) {
             guard.isBufferOfLengthAny(publicKey, [lengths.PUBLIC_KEY1, lengths.PUBLIC_KEY2], messages.INVALID_PUBLIC_KEY);
 
             return impl.verifySync(message, signature, publicKey);
+        },
+
+        verify(message, signature, publicKey) {
+            guard.isBufferOfLength(message, lengths.MESSAGE, messages.INVALID_MESSAGE);
+
+            guard.isBufferOfLength(signature, lengths.SIGNATURE, messages.INVALID_SIGNATURE);
+
+            guard.isBufferOfLengthAny(publicKey, [lengths.PUBLIC_KEY1, lengths.PUBLIC_KEY2], messages.INVALID_PUBLIC_KEY);
+
+            return impl.verify(message, signature, publicKey);
         }
     });
 })(secp256k1);

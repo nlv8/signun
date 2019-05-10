@@ -33,21 +33,21 @@ napi_value secp256k1_addon_private_key_verify_sync(napi_env env, napi_callback_i
     size_t argc = 1;
     napi_value argv[1];
     secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
         env, "Could not read function arguments."
     );
 
     size_t private_key_length;
     const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
 
     napi_value js_result;
     const int verify_result = secp256k1_ec_seckey_verify(callback_data->secp256k1context, private_key);
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_boolean(env, verify_result, &js_result),
         env, "Could not set the result."
     );
@@ -60,20 +60,20 @@ napi_value secp256k1_addon_public_key_create_sync(napi_env env, napi_callback_in
     size_t argc = 2;
     napi_value argv[2];
     secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
         env, "Could not read function arguments."
     );
 
     size_t private_key_length;
     const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
 
     bool is_compressed;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_value_bool(env, argv[1], &is_compressed),
         env, "Invalid bool was passed as compressed flag."
     );
@@ -84,6 +84,7 @@ napi_value secp256k1_addon_public_key_create_sync(napi_env env, napi_callback_in
     if (0 == secp256k1_ec_pubkey_create(callback_data->secp256k1context, &public_key, private_key))
     {
         napi_throw_error(env, NULL, "Could not create the public key.");
+        return NULL;
     }
 
     size_t serialized_public_key_length = 65;
@@ -91,7 +92,7 @@ napi_value secp256k1_addon_public_key_create_sync(napi_env env, napi_callback_in
     secp256k1_ec_pubkey_serialize(callback_data->secp256k1context, &serialized_public_key[0], &serialized_public_key_length, &public_key, serializationFlags);
 
     napi_value js_result;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_create_buffer_copy(env, serialized_public_key_length, (void *)serialized_public_key, NULL, &js_result),
         env, "Could not set the result buffer"
     );
@@ -193,21 +194,21 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     size_t argc = 4;
     napi_value argv[4];
     secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
         env, "Could not read function arguments."
     );
 
     size_t message_length;
     const unsigned char *message;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &message, &message_length),
         env, "Invalid buffer was passed as message."
     );
 
     size_t private_key_length;
     const unsigned char *private_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[1], (void **) &private_key, &private_key_length),
         env, "Invalid buffer was passed as a private key."
     );
@@ -216,19 +217,19 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     unsigned char *data = NULL;
 
     napi_value null_value;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_null(env, &null_value),
         env, "Could not get null object"
     );
 
     bool is_noncefn_null;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_strict_equals(env, argv[2], null_value, &is_noncefn_null),
         env, "Could not check if noncefn is null"
     );
 
     bool is_data_null;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_strict_equals(env, argv[3], null_value, &is_data_null),
         env, "Could not check if data is null"
     );
@@ -239,7 +240,7 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     }
     else
     {
-        THROW_ON_FAILURE(
+        THROW_AND_RETURN_NULL_ON_FAILURE(
             napi_get_buffer_info(env, argv[3], (void **) &data, &data_length),
             env, "Invalid buffer was passed as data."
         );
@@ -260,6 +261,7 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     if (0 == sign_status)
     {
         napi_throw_error(env, NULL, "Could not sign the mesage.");
+        return NULL;
     }
 
     size_t compact_output_length = 64;
@@ -268,29 +270,29 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     secp256k1_ecdsa_recoverable_signature_serialize_compact(callback_data->secp256k1context, &compact_output[0], &recovery_id, &signature);
 
     napi_value js_signature;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_create_buffer_copy(env, compact_output_length, (void *)compact_output, NULL, &js_signature),
         env, "Could not set the signature buffer"
     );
 
     napi_value js_recovery;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_create_int32(env, recovery_id, &js_recovery),
         env, "Could not set the recovery id."
     );
 
     napi_value js_result;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_create_object(env, &js_result),
         env, "Could not create the result object."
     );   
 
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_set_named_property(env, js_result, "signature", js_signature),
         env, "Could not set named property: 'signature'."
     );
 
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_set_named_property(env, js_result, "recovery", js_recovery),
         env, "Could not set named property: 'recovery'."
     );
@@ -303,28 +305,28 @@ napi_value secp256k1_addon_verify_sync(napi_env env, napi_callback_info info)
     size_t argc = 3;
     napi_value argv[3];
     secp256k1_addon_callback_data_t *callback_data;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, (void **) &callback_data),
         env, "Could not read function arguments."
     );
 
     size_t message_length;
     const unsigned char *message;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[0], (void **) &message, &message_length),
         env, "Invalid buffer was passed as message."
     );
     
     size_t raw_signature_length;
     const unsigned char *raw_signature;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[1], (void **) &raw_signature, &raw_signature_length),
         env, "Invalid buffer was passed as signature."
     );
 
     size_t raw_public_key_length;
     const unsigned char *raw_public_key;
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_buffer_info(env, argv[2], (void **) &raw_public_key, &raw_public_key_length),
         env, "Invalid buffer was passed as a public key."
     );
@@ -343,7 +345,7 @@ napi_value secp256k1_addon_verify_sync(napi_env env, napi_callback_info info)
 
     napi_value js_result;
     const int verify_result = secp256k1_ecdsa_verify(callback_data->secp256k1context, &signature, message, &public_key);
-    THROW_ON_FAILURE(
+    THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_boolean(env, verify_result, &js_result),
         env, "Could not set the result."
     );

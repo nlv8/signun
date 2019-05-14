@@ -1,6 +1,18 @@
 {
     "targets": [{
         "target_name": "signun",
+        "actions": [
+            {
+                # For debugging purposes, it's printed whether we
+                # are building with GMP or not.
+                'action_name': 'print_gmp_found',
+                'action': [ 'echo', 'Building with GMP: <(gmp_found)' ],
+                'inputs': [],
+                # Must reference a source file here so that
+                # the action is called.
+                'outputs': [ "./src/native/src/signun.c" ]
+            }
+        ],
         "variables": {
             "conditions": [
                 [
@@ -11,7 +23,7 @@
                     },
                     # Otherwise, check if it's installed.
                     {
-                        "gmp_found%": "<!(ldconfig -p | grep libgmp)"
+                        "gmp_found%": "<!(util/has_lib.sh gmp)"
                     }
                 ]
             ]
@@ -114,6 +126,14 @@
                         # Use the 8x32 scalar implementation.
                         "USE_SCALAR_8X32=1"
                     ]
+                }
+            ],
+            [
+                "OS=='mac'", {
+                # On Mac.
+                    "libraries": [
+                        "-L/usr/local/lib"
+                    ],
                 }
             ]
         ]

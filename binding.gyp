@@ -23,7 +23,7 @@
                     },
                     # Otherwise, check if it's installed.
                     {
-                        "gmp_found%": "<!(util/has_lib.sh gmp)"
+                        "gmp_found%": "<!(sh ./util/has_lib.sh gmp)"
                     }
                 ]
             ]

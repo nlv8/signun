@@ -13,6 +13,7 @@ typedef struct
 {
     napi_deferred deferred;
     secp256k1_context *secp256k1context;
+    signun_js_value_cache_t js_value_cache;
     napi_async_work async_work;
 
     unsigned char private_key[KEY_LENGTH];
@@ -37,14 +38,11 @@ napi_value secp256k1_addon_private_key_verify_sync(napi_env env, napi_callback_i
         env, "Invalid buffer was passed as a private key."
     );
 
-    napi_value js_result;
     const int verify_result = secp256k1_ec_seckey_verify(callback_data->secp256k1context, private_key);
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_boolean(env, verify_result, &js_result),
-        env, "Could not set the result."
-    );
 
-    return js_result;
+    return verify_result 
+        ? callback_data->js_value_cache.js_true
+        : callback_data->js_value_cache.js_false;
 }
 
 static void private_key_verify_async_execute(napi_env env, void *data)
@@ -76,15 +74,9 @@ static void private_key_verify_async_complete(napi_env env, napi_status status, 
         return;
     }
 
-    napi_value js_result;
-    if (napi_ok != napi_get_boolean(env, callback_data->is_verified, &js_result))
-    {
-        REJECT_WITH_ERROR(env, "Could not get a boolean.", callback_data->deferred);
-
-        free(callback_data);
-
-        return;
-    }
+    napi_value js_result = callback_data->is_verified
+        ? callback_data->js_value_cache.js_true
+        : callback_data->js_value_cache.js_false;
 
     napi_resolve_deferred(env, callback_data->deferred, js_result);
 
@@ -108,12 +100,6 @@ napi_value secp256k1_addon_private_key_verify_async(napi_env env, napi_callback_
         env, "Invalid buffer was passed as a private key."
     );
 
-    napi_value null_value;
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_null(env, &null_value),
-        env, "Could not get null value."
-    );
-
     const char *resource_identifier = "secp256k1::async::verify";
     napi_value verify_resource_name;
     THROW_AND_RETURN_NULL_ON_FAILURE(
@@ -123,6 +109,7 @@ napi_value secp256k1_addon_private_key_verify_async(napi_env env, napi_callback_
 
     private_key_verify_callback_data_t *verify_callback_data = (private_key_verify_callback_data_t *)malloc(sizeof (private_key_verify_callback_data_t));
     verify_callback_data->secp256k1context = current_callback_data->secp256k1context;
+    verify_callback_data->js_value_cache = current_callback_data->js_value_cache;
 
     memcpy(verify_callback_data->private_key, private_key, KEY_LENGTH);
 

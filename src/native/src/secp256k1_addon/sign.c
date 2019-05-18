@@ -15,12 +15,14 @@ typedef struct
     void *original_data;
     napi_env env;
     napi_value js_noncefn;
+    signun_js_value_cache_t js_value_cache;
 } custom_nonce_closure_t;
 
 typedef struct
 {
     napi_deferred deferred;
     secp256k1_context *secp256k1context;
+    signun_js_value_cache_t js_value_cache;
     napi_async_work async_work;
 
     unsigned char message[MESSAGE_LENGTH];
@@ -58,7 +60,7 @@ static int wrapped_js_nonce_fn(unsigned char *nonce, const unsigned char *messag
     }
     else
     {
-        status = napi_get_null(env, &data_buffer);
+        data_buffer = nonce_closure_ptr->js_value_cache.js_null;
     }
 
     if (napi_ok != status)
@@ -73,7 +75,7 @@ static int wrapped_js_nonce_fn(unsigned char *nonce, const unsigned char *messag
     }
     else
     {
-        status = napi_get_null(env, &algorithm_buffer);
+        algorithm_buffer = nonce_closure_ptr->js_value_cache.js_null;
     }
 
     if (napi_ok != status)
@@ -150,11 +152,7 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     size_t data_length;
     unsigned char *data = NULL;
 
-    napi_value null_value;
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_null(env, &null_value),
-        env, "Could not get null object"
-    );
+    napi_value null_value = callback_data->js_value_cache.js_null;
 
     bool is_noncefn_null;
     THROW_AND_RETURN_NULL_ON_FAILURE(
@@ -188,7 +186,7 @@ napi_value secp256k1_addon_sign_sync(napi_env env, napi_callback_info info)
     }
     else
     {
-        custom_nonce_closure_t nonce_closure = { data, env, argv[2] };
+        custom_nonce_closure_t nonce_closure = { data, env, argv[2], callback_data->js_value_cache };
         sign_status = secp256k1_ecdsa_sign_recoverable(callback_data->secp256k1context, &signature, message, private_key, wrapped_js_nonce_fn, &nonce_closure);
     }
     
@@ -366,11 +364,7 @@ napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
     size_t data_length;
     unsigned char *data = NULL;
 
-    napi_value null_value;
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_null(env, &null_value),
-        env, "Could not get null object"
-    );
+    napi_value null_value = current_callback_data->js_value_cache.js_null;
 
     bool is_noncefn_null;
     THROW_AND_RETURN_NULL_ON_FAILURE(
@@ -406,6 +400,7 @@ napi_value secp256k1_addon_sign_async(napi_env env, napi_callback_info info)
     sign_callback_data_t *sign_callback_data = (sign_callback_data_t *)malloc(sizeof (sign_callback_data_t));
     
     sign_callback_data->secp256k1context = current_callback_data->secp256k1context;
+    sign_callback_data->js_value_cache = current_callback_data->js_value_cache;
 
     memcpy(&sign_callback_data->message[0], message, MESSAGE_LENGTH);
     memcpy(&sign_callback_data->private_key[0], private_key, KEY_LENGTH);

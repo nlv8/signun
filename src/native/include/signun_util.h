@@ -1,7 +1,6 @@
 #ifndef __SIGNUN_UTIL_H
 #define __SIGNUN_UTIL_H
 
-#include <js_native_api.h>
 #include <node_api.h>
 
 

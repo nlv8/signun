@@ -13,7 +13,6 @@ typedef struct
 {
     napi_deferred deferred;
     secp256k1_context *secp256k1context;
-    signun_js_value_cache_t js_value_cache;
     napi_async_work async_work;
 
     unsigned char private_key[KEY_LENGTH];
@@ -157,6 +156,12 @@ napi_value secp256k1_addon_public_key_create_async(napi_env env, napi_callback_i
         env, "Invalid bool was passed as compressed flag."
     );
 
+    napi_value null_value;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_null(env, &null_value),
+        env, "Could not get null value."
+    );
+
     const char *resource_identifier = "secp256k1::async::createPublicKey";
     napi_value create_resource_name;
     THROW_AND_RETURN_NULL_ON_FAILURE(
@@ -168,7 +173,6 @@ napi_value secp256k1_addon_public_key_create_async(napi_env env, napi_callback_i
     create_callback_data->is_compressed = is_compressed;
     create_callback_data->public_key_length = SERIALIZED_PUBLIC_KEY_LENGTH;
     create_callback_data->secp256k1context = current_callback_data->secp256k1context;
-    create_callback_data->js_value_cache = current_callback_data->js_value_cache;
 
     memcpy(&create_callback_data->private_key[0], private_key, KEY_LENGTH);
 

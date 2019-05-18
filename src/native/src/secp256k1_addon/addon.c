@@ -1,6 +1,5 @@
 #include "secp256k1_addon/addon.h"
 
-#include "signun_util.h"
 #include "secp256k1_addon/private_key_verify.h"
 #include "secp256k1_addon/public_key_create.h"
 #include "secp256k1_addon/sign.h"
@@ -10,10 +9,11 @@
 
 static secp256k1_addon_callback_data_t callback_data;
 
-napi_status create_secp256k1_addon(napi_env env, napi_value base)
+napi_status create_secp256k1_addon(napi_env env, napi_value base, signun_js_value_cache_t js_value_cache)
 {
     napi_value addon;
 
+    callback_data.js_value_cache = js_value_cache;
     callback_data.secp256k1context = secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY);
 
     RETURN_ON_FAILURE(napi_create_object(env, &addon));

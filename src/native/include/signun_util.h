@@ -3,6 +3,11 @@
 
 #include <node_api.h>
 
+typedef struct {
+    napi_value js_true;
+    napi_value js_false;
+    napi_value js_null;
+} signun_js_value_cache_t;
 
 #define DECLARE_NAPI_METHOD(name, function, data)     \
 { name, NULL, function, NULL, NULL, NULL, napi_default | napi_enumerable, data }

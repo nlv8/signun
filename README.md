@@ -2,6 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/signun.svg)](https://www.npmjs.com/package/signun)
 [![Build Status](https://dev.azure.com/battila7/signun/_apis/build/status/battila7.signun?branchName=master)](https://dev.azure.com/battila7/signun/_build/latest?definitionId=1&branchName=master)
+[![License](https://img.shields.io/github/license/battila7/signun.svg)](LICENSE)
 
 signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n_api) bindings to the following crypto libraries:
 

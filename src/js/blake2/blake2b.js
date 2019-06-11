@@ -30,9 +30,7 @@ function keyedHashFactory(func) {
     return function keyedHash(data, key, hashLength) {
         guard.isBuffer(data, messages.INVALID_DATA);
 
-        guard.isBufferOfLength(key, lengths.KEY_LENGTH, messages.INVALID_KEY);
-
-        return func(data, hashLength, key);
+        return func(data, key, hashLength, data.length);
     };
 };
 

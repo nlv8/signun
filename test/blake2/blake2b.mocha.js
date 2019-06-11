@@ -18,15 +18,23 @@ const testData = (function loadTestData(p) {
 
     const withoutKey = data
         .filter(testCase => testCase.key == '');
+
+    const withKey = data
+        .filter(testCase => testCase.key != '');
     
     return {
-        withoutKey
+        withoutKey,
+        withKey
     };
 })(testDataPath);
 
 describe('blake2b', function describeBlake2b() {
     describe('without key', function describeWithoutKey() {
         testData.withoutKey.forEach(testWithoutKey);
+    });
+
+    describe('with key', function describeWithoutKey() {
+        testData.withKey.forEach(testWithKey);
     });
 });
 
@@ -37,6 +45,21 @@ function testWithoutKey(testCase) {
 
         // When
         const result = await signun.blake2.blake2b.hash(data, 64);
+
+        // Then
+        const resultHex = result.toString('hex');
+        expect(resultHex).to.be.equal(testCase.out);
+    });
+};
+
+function testWithKey(testCase) {
+    it(`should correctly hash "${testCase.in}" with key "${testCase.key}"`, async function () {
+        // Given
+        const data = Buffer.from(testCase.in, 'hex');
+        const key = Buffer.from(testCase.key, 'hex');
+
+        // When
+        const result = await signun.blake2.blake2b.keyedHash(data, key, 64);
 
         // Then
         const resultHex = result.toString('hex');

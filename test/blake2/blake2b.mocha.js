@@ -10,7 +10,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const testDataPath = path.resolve(__dirname, '..', '..', 
-    'dependencies', 'blake2', 'testvectors', 'blake2-kat.json');
+    'dependencies', 'BLAKE2', 'testvectors', 'blake2-kat.json');
 
 const testData = (function loadTestData(p) {
     const data = require(p)

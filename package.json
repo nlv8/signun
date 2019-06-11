@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/battila7/signun.git"
+    "url": "git+https://github.com/nlv8/signun.git"
   },
   "keywords": [
     "N-API",
@@ -20,9 +20,9 @@
   "author": "Attila Bagossy",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/battila7/signun/issues"
+    "url": "https://github.com/nlv8/signun/issues"
   },
-  "homepage": "https://github.com/battila7/signun#readme",
+  "homepage": "https://github.com/nlv8/signun#readme",
   "devDependencies": {
     "node-gyp": "^4.0.0"
   },

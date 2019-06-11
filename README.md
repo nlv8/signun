@@ -1,8 +1,8 @@
 # signun
 
-[![NPM version](https://img.shields.io/npm/v/signun.svg)](https://www.npmjs.com/package/signun)
-[![Build Status](https://dev.azure.com/battila7/signun/_apis/build/status/battila7.signun?branchName=master)](https://dev.azure.com/battila7/signun/_build/latest?definitionId=1&branchName=master)
-[![License](https://img.shields.io/github/license/battila7/signun.svg)](LICENSE)
+[![NPM version](https://img.shields.io/npm/v/@nlv8/signun.svg)](https://www.npmjs.com/package/@nlv8/signun)
+[![Build Status](https://dev.azure.com/nlv8/signun/_apis/build/status/nlv8.signun?branchName=master)](https://dev.azure.com/nlv8/signun/_build/latest?definitionId=1&branchName=master)
+[![License](https://img.shields.io/github/license/nlv8/signun.svg)](LICENSE)
 
 signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n_api) bindings to the following crypto libraries:
 
@@ -18,11 +18,11 @@ signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n
 Install with npm or yarn:
 
 ~~~~
-npm i signun --save
+npm i @nlv8/signun --save
 ~~~~
 
 ~~~~
-yarn add signun
+yarn add @nlv8/signun
 ~~~~
 
 Please keep in mind, that you must have [GMP](https://gmplib.org/) installed (signun will not fallback to JS-only implementations).
@@ -35,7 +35,7 @@ Please keep in mind, that you must have [GMP](https://gmplib.org/) installed (si
 
 ~~~~JavaScript
 const { randomBytes } = require('crypto');
-const { secp256k1 } = require('signun');
+const { secp256k1 } = require('@nlv8/signun');
 
 
 let privateKey;
@@ -66,7 +66,7 @@ console.log(verifyResult);
 
 ~~~~JavaScript
 const { randomBytes } = require('crypto');
-const { secp256k1 } = require('signun');
+const { secp256k1 } = require('@nlv8/signun');
 
 
 (async function main() {

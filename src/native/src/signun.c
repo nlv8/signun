@@ -1,4 +1,5 @@
-#include "secp256k1_addon/addon.h"
+#include "blake2_addon/blake2_addon.h"
+#include "secp256k1_addon/secp256k1_addon.h"
 #include "signun.h"
 
 #include "signun_util.h"
@@ -12,6 +13,11 @@ napi_value create_signun_addon(napi_env env)
 
     THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_create_object(env, &addon),
+        env, INITIALIZATION_ERROR_MESSAGE
+    );
+
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        create_blake2_addon(env, addon),
         env, INITIALIZATION_ERROR_MESSAGE
     );
 

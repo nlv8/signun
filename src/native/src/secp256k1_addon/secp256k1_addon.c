@@ -1,4 +1,4 @@
-#include "secp256k1_addon/addon.h"
+#include "secp256k1_addon/secp256k1_addon.h"
 
 #include "signun_util.h"
 #include "secp256k1_addon/private_key_verify.h"

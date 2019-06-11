@@ -6,7 +6,7 @@
   "gypfile": true,
   "scripts": {
     "build": "node-gyp rebuild",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/**/*.mocha.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,9 @@
   },
   "homepage": "https://github.com/nlv8/signun#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^6.1.4",
     "node-gyp": "^4.0.0"
   },
   "files": [

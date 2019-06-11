@@ -12,6 +12,9 @@ signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n
     * `sign`
       * Note: custom nonce function not yet supported for async, however it works with sync.
     * `verify`.
+  * [BLAKE2](https://github.com/BLAKE2/BLAKE2)
+    * `hash`
+    * `keyedHash` 
 
 ## Install
 
@@ -25,7 +28,7 @@ npm i @nlv8/signun --save
 yarn add @nlv8/signun
 ~~~~
 
-Please keep in mind, that you must have [GMP](https://gmplib.org/) installed (signun will not fallback to JS-only implementations).
+Please keep in mind, that for the best secp256k1 performance, you should have [GMP](https://gmplib.org/) installed.
 
 ## Examples
 
@@ -94,6 +97,24 @@ const { secp256k1 } = require('@nlv8/signun');
 })();
 ~~~~
 
+### BLAKE2 hash
+
+#### Async
+
+~~~~JavaScript
+const { randomBytes } = require('crypto');
+const { blake2b } = require('@nlv8/signun');
+
+(async function main() {
+  const data = randomBytes(64);
+  const key = randomBytes(64);
+  const hashLength = 64;
+
+  const result = await blake2b.hash(data, hashLength);
+  const keyedResult = await blake2b.hash(data, key, hashLength);
+})();
+~~~~
+
 ## Acknowledgements
 
 This project is kindly supported by:
@@ -109,3 +130,4 @@ signun is licensed under [Apache-2.0](https://github.com/battila7/signun/blob/ma
 Licenses of dependencies:
 
   * [secp256k1](https://github.com/bitcoin-core/secp256k1): [MIT](https://github.com/bitcoin-core/secp256k1/blob/master/COPYING)
+  * [BLAKE2](https://github.com/BLAKE2/BLAKE2/blob/master/COPYING)

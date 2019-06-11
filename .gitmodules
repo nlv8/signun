@@ -1,3 +1,6 @@
 [submodule "dependencies/secp256k1"]
 	path = dependencies/secp256k1
 	url = https://github.com/bitcoin-core/secp256k1
+[submodule "dependencies/BLAKE2"]
+	path = dependencies/BLAKE2
+	url = https://github.com/BLAKE2/BLAKE2

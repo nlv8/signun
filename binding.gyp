@@ -30,6 +30,9 @@
         },
         "sources": [
             # Dependencies
+            # blake2
+            "./dependencies/BLAKE2/sse/blake2b.c",
+
             # secp256k1
             "./dependencies/secp256k1/src/secp256k1.c",
 
@@ -47,6 +50,9 @@
             # Dependencies
             # Local Headers (including GMP)
             "/usr/local/include",
+
+            # blake2
+            "./dependencies/BLAKE2/sse",
 
             # secp256k1
             "./dependencies/secp256k1",

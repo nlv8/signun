@@ -108,6 +108,17 @@
                 }
             ],
             [
+                "target_arch=='x64'",
+                # 64-bit architecture
+                {
+                    # On 64-bit, we always have SSE2, however
+                    # MSVC fails to provide the __SSE2__ define.
+                    "defines": [
+                        "__SSE2__=1"
+                    ]
+                }
+            ],
+            [
                 "target_arch=='x64' and OS!='win'",
                 # 64-bit architecture but NOT Windows.
                 {

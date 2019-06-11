@@ -3,7 +3,7 @@ const path = require('path');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
-const signun = require('../../src/js');
+const { blake2b } = require('../../src/js');
 
 
 chai.use(chaiAsPromised);
@@ -44,7 +44,7 @@ function testWithoutKey(testCase) {
         const data = Buffer.from(testCase.in, 'hex');
 
         // When
-        const result = await signun.blake2.blake2b.hash(data, 64);
+        const result = await blake2b.hash(data, 64);
 
         // Then
         const resultHex = result.toString('hex');
@@ -59,7 +59,7 @@ function testWithKey(testCase) {
         const key = Buffer.from(testCase.key, 'hex');
 
         // When
-        const result = await signun.blake2.blake2b.keyedHash(data, key, 64);
+        const result = await blake2b.keyedHash(data, key, 64);
 
         // Then
         const resultHex = result.toString('hex');

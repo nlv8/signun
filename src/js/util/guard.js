@@ -1,4 +1,9 @@
 const guard = {
+    isIntegerBetweenInclusive(obj, min, max, errorMessage) {
+        return Number.isInteger(obj)
+            && (min <= obj)
+            && (obj <= max);
+    },
     isBuffer(obj, errorMessage) {
         if (!Buffer.isBuffer(obj)) {
             throw new TypeError(errorMessage);

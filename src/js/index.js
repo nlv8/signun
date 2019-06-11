@@ -3,6 +3,6 @@ const secp256k1 = require('./secp256k1');
 
 
 module.exports = Object.freeze({
-    blake2,
+    ...blake2,
     secp256k1
 });

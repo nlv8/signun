@@ -60,7 +60,10 @@ Signs the message with the specified private key.
     * `data: Buffer`: Arbitrary data to be passed to the nonce function.
     * `noncefn: function`: A custom nonce function, with the following signature: `noncefn(message: Buffer, key: Buffer, algo: Buffer, data: Buffer, attempt: number): Buffer`.
 
-Returns a Buffer containing the signature upon success.
+Returns an object with the following properties upon success:
+
+  * `signature: Buffer`: The actual signature.
+  * `recovery: number`: The recovery id.
 
 Will throw/reject if the signature cannot be created.
 

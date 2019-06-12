@@ -98,30 +98,29 @@ static void hash_async_complete(napi_env env, napi_status status, void *data)
 
 napi_value blake2_addon_blake2b_hash_async(napi_env env, napi_callback_info info)
 {
-    size_t argc = 2;
-    napi_value argv[2];
+    size_t argc = 3;
+    napi_value argv[3];
     THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, NULL),
         env, "Could not read function arguments."
     );
 
-    unsigned int data_length;
     unsigned char *data;
     THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_buffer_info(env, argv[0], (void **) &data, &data_length),
+        napi_get_buffer_info(env, argv[0], (void **) &data, NULL),
         env, "Invalid buffer was passed as data."
+    );
+
+    unsigned int data_length;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_value_uint32(env, argv[1], &data_length),
+        env, "Invalid data length was passed."
     );
 
     unsigned int hash_length;
     THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_value_uint32(env, argv[1], &hash_length),
+        napi_get_value_uint32(env, argv[2], &hash_length),
         env, "Invalid hash length was passed."
-    );
-
-    napi_value null_value;
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_null(env, &null_value),
-        env, "Could not get null value."
     );
 
     const char *resource_identifier = "blake2::async::hash";
@@ -224,8 +223,8 @@ static void keyed_hash_async_complete(napi_env env, napi_status status, void *da
 
 napi_value blake2_addon_blake2b_keyed_hash_async(napi_env env, napi_callback_info info)
 {
-    size_t argc = 4;
-    napi_value argv[4];
+    size_t argc = 5;
+    napi_value argv[5];
     THROW_AND_RETURN_NULL_ON_FAILURE(
         napi_get_cb_info(env, info, &argc, argv, NULL, NULL),
         env, "Could not read function arguments."
@@ -237,23 +236,28 @@ napi_value blake2_addon_blake2b_keyed_hash_async(napi_env env, napi_callback_inf
         env, "Invalid buffer was passed as data."
     );
 
-    unsigned int key_length;
+    unsigned int data_length;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_value_uint32(env, argv[1], &data_length),
+        env, "Invalid data length was passed."
+    );
+
     unsigned char *key;
     THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_buffer_info(env, argv[1], (void **) &key, &key_length),
+        napi_get_buffer_info(env, argv[2], (void **) &key, NULL),
         env, "Invalid buffer was passed as key."
+    );
+
+    unsigned int key_length;
+    THROW_AND_RETURN_NULL_ON_FAILURE(
+        napi_get_value_uint32(env, argv[3], &key_length),
+        env, "Invalid data length was passed."
     );
 
     unsigned int hash_length;
     THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_value_uint32(env, argv[2], &hash_length),
+        napi_get_value_uint32(env, argv[4], &hash_length),
         env, "Invalid hash length was passed."
-    );
-
-    unsigned int data_length;
-    THROW_AND_RETURN_NULL_ON_FAILURE(
-        napi_get_value_uint32(env, argv[3], &data_length),
-        env, "Invalid data length was passed."
     );
 
     const char *resource_identifier = "blake2::async::keyed_hash";

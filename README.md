@@ -6,15 +6,8 @@
 
 signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n_api) bindings to the following crypto libraries:
 
-  * [secp256k1](https://github.com/bitcoin-core/secp256k1)
-    * `privateKeyVerify`,
-    * `publicKeyCreate`,
-    * `sign`
-      * Note: custom nonce function not yet supported for async, however it works with sync.
-    * `verify`.
-  * [BLAKE2](https://github.com/BLAKE2/BLAKE2)
-    * `hash`
-    * `keyedHash` 
+  * [secp256k1](https://github.com/bitcoin-core/secp256k1),
+  * [BLAKE2](https://github.com/BLAKE2/BLAKE2).
 
 ## Install
 
@@ -29,6 +22,80 @@ yarn add @nlv8/signun
 ~~~~
 
 Please keep in mind, that for the best secp256k1 performance, you should have [GMP](https://gmplib.org/) installed.
+
+## API
+
+signun exports the following two objects:
+
+### `secp256k1`
+
+Asynchronous and synchronous bindings for secdp256k1-based ECDSA. By default, all functions are async, returning a Promise. However, by appending `Sync` at the end of the function name, one can invoke them synchronously.
+
+#### `privateKeyVerify(privateKey)`
+
+Verifies whether a Buffer is a valid private key.
+
+  * `privateKey: Buffer`: A Buffer containing the candidate private key.
+
+Returns `true` if the specified Buffer is a valid private key and `false` otherwise.
+
+#### `publicKeyCreate(privateKey, isCompressed = true)`
+
+Constructs a new public key corresponding to the specified private key.
+
+  * `privateKey: Buffer`: A Buffer containing a valid private key.
+  * `isCompressed: boolean = true`: Whether a compressed representation should be produced.
+
+Returns a Buffer with the public key upon success.
+
+Will throw/reject if the public key cannot be created from the specified data.
+
+#### `sign(message, privateKey, options)`
+
+Signs the message with the specified private key.
+
+  * `message: Buffer`: The message to sign.
+  * `privateKey: Buffer`: The private key with which the signature will be created.
+  * `options: object`: Optional options object. Can only be used for synchronous invocations.
+    * `data: Buffer`: Arbitrary data to be passed to the nonce function.
+    * `noncefn: function`: A custom nonce function, with the following signature: `noncefn(message: Buffer, key: Buffer, algo: Buffer, data: Buffer, attempt: number): Buffer`.
+
+Returns a Buffer containing the signature upon success.
+
+Will throw/reject if the signature cannot be created.
+
+#### `verify(message, signature, publicKey)`
+
+Verifies a signature against the specified message and public key.
+
+   * `message: Buffer`: The message we think was signed.
+   * `signature: Buffer`: The signature to be verified.
+   * `publicKey`: The public key pair of the signing private key.
+
+Returns `true` if the signature is valid and `false` otherwise.
+
+### `blake2b`
+
+Asynchronous BLAKE2b hashing.
+
+#### `hash(data, hashLength)`
+
+Hashes the specified data.
+
+  * `data: Buffer`: The data to be hashed. Can be empty but must be a valid Buffer.
+  * `hashLength: number`: The length of the hash. Must be between 1 and 64 (inclusive).
+
+Returns the hash in a Buffer.
+
+#### `keyedHash(data, key, hashLength)`
+
+Produces the keyed hash of the specified data.
+
+  * `data: Buffer`: The data to be hashed. Can be empty but must be a valid Buffer.
+  * `key: Buffer`: The key to be used.
+  * `hashLength: number`: The length of the hash. Must be between 1 and 64 (inclusive).
+
+Returns the hash in a Buffer.
 
 ## Examples
 
@@ -97,9 +164,23 @@ const { secp256k1 } = require('@nlv8/signun');
 })();
 ~~~~
 
-### BLAKE2 hash
+### BLAKE2
 
-#### Async
+#### hash
+
+~~~~JavaScript
+const { randomBytes } = require('crypto');
+const { blake2b } = require('@nlv8/signun');
+
+(async function main() {
+  const data = randomBytes(64);
+  const hashLength = 64;
+
+  const result = await blake2b.hash(data, hashLength);
+})();
+~~~~
+
+#### keyedHash
 
 ~~~~JavaScript
 const { randomBytes } = require('crypto');
@@ -110,8 +191,7 @@ const { blake2b } = require('@nlv8/signun');
   const key = randomBytes(64);
   const hashLength = 64;
 
-  const result = await blake2b.hash(data, hashLength);
-  const keyedResult = await blake2b.hash(data, key, hashLength);
+  const result = await blake2b.keyedHash(data, key, hashLength);
 })();
 ~~~~
 
@@ -130,4 +210,4 @@ signun is licensed under [Apache-2.0](https://github.com/battila7/signun/blob/ma
 Licenses of dependencies:
 
   * [secp256k1](https://github.com/bitcoin-core/secp256k1): [MIT](https://github.com/bitcoin-core/secp256k1/blob/master/COPYING)
-  * [BLAKE2](https://github.com/BLAKE2/BLAKE2/blob/master/COPYING)
+  * [BLAKE2](https://github.com/BLAKE2/BLAKE2): Triple-licensed, using [Apache 2.0](https://github.com/BLAKE2/BLAKE2/blob/master/README.md)

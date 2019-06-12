@@ -1,6 +1,5 @@
 #include "blake2_addon/signun_blake2b.h"
 
-#include <limits.h>
 #include <stdlib.h>
 
 #include "blake2.h"

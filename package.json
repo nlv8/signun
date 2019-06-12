@@ -6,7 +6,8 @@
   "gypfile": true,
   "scripts": {
     "build": "node-gyp rebuild",
-    "test": "mocha test/**/*.mocha.js"
+    "test": "mocha test/**/*.mocha.js --reporter spec",
+    "test-ci": "mocha test/**/*.mocha.js --reporter mocha-junit-reporter"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^6.1.4",
+    "mocha-junit-reporter": "^1.23.0",
     "node-gyp": "^4.0.0"
   },
   "files": [

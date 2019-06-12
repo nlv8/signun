@@ -17,7 +17,7 @@ function hashFactory(func) {
     return function hash(data, hashLength) {
         guard.isBuffer(data, messages.INVALID_DATA);
 
-        return func(data, hashLength);
+        return func(data, data.length, hashLength);
     };
 };
 
@@ -27,7 +27,7 @@ function keyedHashFactory(func) {
 
         guard.isIntegerBetweenInclusive(hashLength, lengths.MIN_HASH_LENGTH, lengths.MAX_HASH_LENGTH, messages.INVALID_HASH_LENGTH);
 
-        return func(data, key, hashLength, data.length);
+        return func(data, data.length, key, key.length, hashLength);
     };
 };
 

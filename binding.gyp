@@ -76,7 +76,8 @@
             # inherently present in secp256k1.
             "-Wno-maybe-uninitialized",
             "-Wno-uninitialized",
-            "-Wno-unused-function"
+            "-Wno-unused-function",
+            "-Wno-nonnull-compare",
         ],
         "conditions": [
             [

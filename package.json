@@ -1,6 +1,6 @@
 {
   "name": "@nlv8/signun",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "N-API Crypto bindings.",
   "main": "src/js/index.js",
   "gypfile": true,
@@ -30,7 +30,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^8.2.0",
+    "mocha": "^8.2.1",
     "mocha-junit-reporter": "^2.0.0"
   },
   "files": [

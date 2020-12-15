@@ -29,10 +29,6 @@
             ]
         },
         "sources": [
-            # Dependencies
-            # blake2
-            "./dependencies/BLAKE2/sse/blake2b.c",
-
             # secp256k1
             "./dependencies/secp256k1/src/secp256k1.c",
 
@@ -52,9 +48,6 @@
             # Dependencies
             # Local Headers (including GMP)
             "/usr/local/include",
-
-            # blake2
-            "./dependencies/BLAKE2/sse",
 
             # secp256k1
             "./dependencies/secp256k1",
@@ -76,7 +69,8 @@
             # inherently present in secp256k1.
             "-Wno-maybe-uninitialized",
             "-Wno-uninitialized",
-            "-Wno-unused-function"
+            "-Wno-unused-function",
+            "-Wno-nonnull-compare",
         ],
         "conditions": [
             [
@@ -106,6 +100,29 @@
                         "USE_FIELD_INV_BUILTIN=1",
                         # Use the native scalar inverse implementation.
                         "USE_SCALAR_INV_BUILTIN=1"
+                    ]
+                }
+            ],
+            [
+                # Dependencies
+                # blake2
+                "target_arch=='arm64'",
+                {
+                    "sources": [
+                        "./dependencies/BLAKE2/neon/blake2b.c"
+                    ],
+                    "include_dirs": [
+                        # blake2
+                        "./dependencies/BLAKE2/neon"
+                    ]
+                },
+                {
+                    "sources": [
+                        "./dependencies/BLAKE2/sse/blake2b.c"
+                    ],
+                    "include_dirs": [
+                        # blake2
+                        "./dependencies/BLAKE2/sse"
                     ]
                 }
             ],

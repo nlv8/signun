@@ -1,6 +1,6 @@
 {
   "name": "@nlv8/signun",
-  "version": "1.3.6",
+  "version": "1.4.4",
   "description": "N-API Crypto bindings.",
   "main": "src/js/index.js",
   "gypfile": true,
@@ -24,12 +24,14 @@
     "url": "https://github.com/nlv8/signun/issues"
   },
   "homepage": "https://github.com/nlv8/signun#readme",
+  "dependencies": {
+    "node-gyp": "^7.1.2"
+  },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "mocha": "^7.0.0",
-    "mocha-junit-reporter": "^1.23.1",
-    "node-gyp": "^6.1.0"
+    "chai": "4.2.0",
+    "chai-as-promised": "7.1.1",
+    "mocha": "8.2.1",
+    "mocha-junit-reporter": "2.0.0"
   },
   "files": [
     "dependencies",

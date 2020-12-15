@@ -1,0 +1,37 @@
+name: Build Master
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: 'Test on Node ${{ matrix.node }}'
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        node: [12, 14, 15]
+
+    steps:
+    - name: Checkout the Repository
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+      
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+      
+    - name: Install dependencies and build
+      run: |
+        npm i
+        npm run build
+    
+    - name: Run Tests
+      run: |
+        npm run test-ci

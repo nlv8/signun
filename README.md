@@ -1,7 +1,7 @@
 # signun
 
 [![NPM version](https://img.shields.io/npm/v/@nlv8/signun.svg)](https://www.npmjs.com/package/@nlv8/signun)
-[![Build Status](https://dev.azure.com/nlv8/signun/_apis/build/status/nlv8.signun?branchName=master)](https://dev.azure.com/nlv8/signun/_build/latest?definitionId=1&branchName=master)
+[![Build Master](https://github.com/nlv8/signun/workflows/Build%20Master/badge.svg)](https://github.com/nlv8/signun/actions?query=workflow%3A%22Build+Master%22)
 [![License](https://img.shields.io/github/license/nlv8/signun.svg)](LICENSE)
 
 signun provides sync and async [N-API](https://nodejs.org/api/n-api.html#n_api_n_api) bindings to the following crypto libraries:

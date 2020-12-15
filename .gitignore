@@ -65,6 +65,3 @@ build/
 
 # JUnit style test results
 test-results.xml
-
-# killing npm shit
-package-lock.json

@@ -85,7 +85,11 @@
                         # Use the num-based field inverse implementation.
                         "USE_FIELD_INV_NUM=1",
                         # Use the num-based scalar inverse implementation.
-                        "USE_SCALAR_INV_NUM=1"
+                        "USE_SCALAR_INV_NUM=1",
+                        # Elliptic curve multiplication precomputation table size.
+                        "ECMULT_WINDOW_SIZE=15",
+                        # Elliptic curve multiplication precomputation precision.
+                        "ECMULT_GEN_PREC_BITS=4"
                     ],
                     "libraries": [
                         "-lgmp"
@@ -99,7 +103,13 @@
                         # Use the native field inverse implementation.
                         "USE_FIELD_INV_BUILTIN=1",
                         # Use the native scalar inverse implementation.
-                        "USE_SCALAR_INV_BUILTIN=1"
+                        "USE_SCALAR_INV_BUILTIN=1",
+                        # Elliptic curve multiplication precomputation table size.
+                        # Set to the default value. Tune if needed.
+                        "ECMULT_WINDOW_SIZE=15",
+                        # Elliptic curve multiplication precomputation precision.
+                        # Set to the default value. Tune if needed.
+                        "ECMULT_GEN_PREC_BITS=4"
                     ]
                 }
             ],

@@ -87,7 +87,9 @@
                         # Use the num-based scalar inverse implementation.
                         "USE_SCALAR_INV_NUM=1",
                         # Elliptic curve multiplication precomputation table size.
-                        "ECMULT_WINDOW_SIZE=15"
+                        "ECMULT_WINDOW_SIZE=15",
+                        # Elliptic curve multiplication precomputation precision.
+                        "ECMULT_GEN_PREC_BITS=4"
                     ],
                     "libraries": [
                         "-lgmp"
@@ -103,7 +105,11 @@
                         # Use the native scalar inverse implementation.
                         "USE_SCALAR_INV_BUILTIN=1",
                         # Elliptic curve multiplication precomputation table size.
-                        "ECMULT_WINDOW_SIZE=15"
+                        # Set to the default value. Tune if needed.
+                        "ECMULT_WINDOW_SIZE=15",
+                        # Elliptic curve multiplication precomputation precision.
+                        # Set to the default value. Tune if needed.
+                        "ECMULT_GEN_PREC_BITS=4"
                     ]
                 }
             ],

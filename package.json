@@ -24,12 +24,20 @@
     "url": "https://github.com/nlv8/signun/issues"
   },
   "homepage": "https://github.com/nlv8/signun#readme",
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
   "dependencies": {
     "node-gyp": "^7.1.2"
   },
   "devDependencies": {
+    "@commitlint/cli": "11.0.0",
+    "@commitlint/config-conventional": "11.0.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
+    "husky": "4.3.6",
     "mocha": "8.2.1",
     "mocha-junit-reporter": "2.0.0"
   },

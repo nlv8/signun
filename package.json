@@ -1,6 +1,6 @@
 {
   "name": "@nlv8/signun",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "N-API Crypto bindings.",
   "main": "src/js/index.js",
   "gypfile": true,
@@ -30,15 +30,15 @@
     }
   },
   "dependencies": {
-    "node-gyp": "7.1.2"
+    "node-gyp": "8.1.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "11.0.0",
-    "@commitlint/config-conventional": "11.0.0",
-    "chai": "4.2.0",
+    "@commitlint/cli": "12.1.4",
+    "@commitlint/config-conventional": "12.1.4",
+    "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
-    "husky": "4.3.6",
-    "mocha": "8.2.1",
+    "husky": "7.0.1",
+    "mocha": "9.0.2",
     "mocha-junit-reporter": "2.0.0"
   },
   "files": [
@@ -48,5 +48,8 @@
     "binding.gyp",
     "LICENSE",
     "README.md"
-  ]
+  ],
+  "engines": {
+    "node": ">= 10.0.0"
+  }
 }

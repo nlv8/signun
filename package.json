@@ -1,6 +1,6 @@
 {
   "name": "@nlv8/signun",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "N-API Crypto bindings.",
   "main": "src/js/index.js",
   "gypfile": true,

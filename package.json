@@ -30,15 +30,15 @@
     }
   },
   "dependencies": {
-    "node-gyp": "8.1.0"
+    "node-gyp": "8.2.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "12.1.4",
-    "@commitlint/config-conventional": "12.1.4",
+    "@commitlint/cli": "13.1.0",
+    "@commitlint/config-conventional": "13.1.0",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
-    "husky": "7.0.1",
-    "mocha": "9.0.2",
+    "husky": "7.0.2",
+    "mocha": "9.1.1",
     "mocha-junit-reporter": "2.0.0"
   },
   "files": [
